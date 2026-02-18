@@ -19,53 +19,148 @@
     .row > div { flex:1; }
     .error { color: #b00020; margin-top: 10px; font-size: 14px; }
     .hint { color:#666; font-size: 13px; margin-top: 8px; }
+    
+    /* Стили кнопок */
     button {
       width: 100%; margin-top: 14px; padding: 12px; font-size: 16px;
       border-radius: 12px; border: none; cursor: pointer;
+      font-weight: 500;
     }
+    /* Кнопка действия (синяя/зеленая) */
+    .btn-primary {
+      background-color: var(--tg-theme-button-color, #2481cc);
+      color: var(--tg-theme-button-text-color, #ffffff);
+    }
+    /* Кнопка ссылки (прозрачная с рамкой) */
+    .btn-outline {
+      background-color: transparent;
+      border: 2px solid var(--tg-theme-button-color, #2481cc);
+      color: var(--tg-theme-text-color, #000);
+      margin-top: 10px;
+    }
+    
+    /* Скрываем блоки */
+    .hidden { display: none; }
   </style>
 </head>
 <body>
-  <h2>Сдача денег</h2>
 
-  <div class="card">
-    <div class="row">
-      <div>
-        <label>Участок *</label>
-        <input id="plot" inputmode="numeric" placeholder="Например: 18" />
-      </div>
-      <div>
-        <label>Сбор *</label>
-        <select id="collection">
-          <option value="">Выбери…</option>
-          <option value="2">Сбор 2</option>
-          <option value="3">Сбор 3</option>
-        </select>
-      </div>
+  <!-- ШАГ 1: ВЫБОР ОПЛАТЫ -->
+  <div id="step1">
+    <h2>Шаг 1: Оплата</h2>
+    <div class="card">
+      <p>Сначала выберите вариант оплаты:</p>
+      
+      <!-- Ссылки на банк -->
+      <button class="btn-outline" onclick="openPayment('https://messenger.online.sberbank.ru/sl/fphFphF74XMKE2qb9')">
+        💳 Сбербанк
+      </button>
+      
+      <button class="btn-outline" onclick="openPayment('https://www.tbank.ru/cf/3J5xZhnK6cY')">
+        💳 Т-Банк
+      </button>
+
+      <br><br>
+      <div class="hint">После оплаты нажмите кнопку ниже, чтобы заполнить данные о платеже.</div>
+      
+      <button class="btn-primary" id="goToFormBtn">
+        Я оплатил, заполнить форму 👉
+      </button>
     </div>
+  </div>
 
-    <label>Сумма (₽) *</label>
-    <input id="amount" inputmode="decimal" placeholder="Например: 1000" />
+  <!-- ШАГ 2: ВАША ФОРМА (Изначально скрыта) -->
+  <div id="step2" class="hidden">
+    <h2>Шаг 2: Данные</h2>
 
-    <label>В какой Банк </label>
-    <input id="bank" placeholder="Сбер / Тинькофф / SBP…" />
+    <div class="card">
+      <div class="row">
+        <div>
+          <label>Участок *</label>
+          <input id="plot" inputmode="numeric" placeholder="Например: 328" />
+        </div>
+        <div>
+          <label>Сбор *</label>
+          <select id="collection">
+            <option value="">Выбери…</option>
+            <option value="2">Сбор 2</option>
+            <option value="3">Сбор 3</option>
+          </select>
+        </div>
+      </div>
 
-    <label>Комментарий (необязательно)</label>
-    <textarea id="comment" placeholder="Например: за двоих / уточнение"></textarea>
+      <label>Сумма (₽) *</label>
+      <input id="amount" inputmode="decimal" placeholder="Например: 1000" />
 
-    <div class="hint">После отправки бот попросит прислать чек (фото/пдф) в этот же чат.</div>
-    <div id="err" class="error"></div>
+      <label>Банк (необязательно)</label>
+      <input id="bank" placeholder="Сбер / Тинькофф / SBP…" />
 
-    <button id="sendBtn">Отправить</button>
+      <label>Комментарий (необязательно)</label>
+      <textarea id="comment" placeholder="Например: за несколько уч / перечисли номера / уточнение"></textarea>
+
+      <div class="hint">После отправки бот попросит прислать чек (фото/пдф) в этот же чат.</div>
+      <div id="err" class="error"></div>
+
+      <button id="sendBtn" class="btn-primary">Отправить заявку</button>
+      
+      <!-- Кнопка назад, если случайно нажали -->
+      <button onclick="goBack()" style="background:none; color:#888; font-size:14px; margin-top:5px;">
+        ← Вернуться к оплате
+      </button>
+    </div>
   </div>
 
   <script>
-       const tg = window.Telegram.WebApp;
+    const tg = window.Telegram.WebApp;
     tg.ready();
+    tg.expand(); // Разворачиваем на весь экран для удобства
 
+    // Применяем цвета темы Telegram
+    const mainButtonColor = tg.themeParams.button_color || "#2481cc";
+    const mainButtonText = tg.themeParams.button_text_color || "#ffffff";
+    
     document.body.style.background = tg.themeParams.bg_color || "#fff";
     document.body.style.color = tg.themeParams.text_color || "#000";
 
+    // Настраиваем стили кнопок динамически под тему
+    document.querySelectorAll('.btn-primary').forEach(b => {
+        b.style.backgroundColor = mainButtonColor;
+        b.style.color = mainButtonText;
+    });
+    document.querySelectorAll('.btn-outline').forEach(b => {
+        b.style.borderColor = mainButtonColor;
+        b.style.color = tg.themeParams.text_color || "#000";
+    });
+
+    // Элементы навигации
+    const step1 = document.getElementById('step1');
+    const step2 = document.getElementById('step2');
+
+    // ФУНКЦИИ ПЕРЕХОДОВ
+    
+    // 1. Открыть ссылку банка
+    window.openPayment = (url) => {
+        tg.openLink(url); 
+    };
+
+    // 2. Перейти к форме
+    document.getElementById('goToFormBtn').onclick = () => {
+        step1.classList.add('hidden');
+        step2.classList.remove('hidden');
+        // Кнопка назад в шапке (опционально)
+        tg.BackButton.show();
+        tg.BackButton.onClick(goBack);
+    };
+
+    // 3. Вернуться назад
+    window.goBack = () => {
+        step2.classList.add('hidden');
+        step1.classList.remove('hidden');
+        tg.BackButton.hide();
+    };
+
+
+    // --- ЛОГИКА ВАШЕЙ ФОРМЫ (без изменений) ---
     const plotEl = document.getElementById("plot");
     const amountEl = document.getElementById("amount");
     const collectionEl = document.getElementById("collection");
@@ -80,18 +175,15 @@
     sendBtn.onclick = () => {
       errEl.textContent = "";
 
-      // --- 1. СНАЧАЛА ПОЛУЧАЕМ ДАННЫЕ (Этого не хватало) ---
       const plot = onlyDigits(plotEl.value);
       const collection = collectionEl.value;
       const amountRaw = normAmount(amountEl.value);
       const amount = Number(amountRaw);
 
-      // --- 2. ПРОВЕРЯЕМ ОШИБКИ (ВАЛИДАЦИЯ) ---
       if (!plot) return errEl.textContent = "Укажи номер участка.";
       if (!collection) return errEl.textContent = "Выбери номер сбора.";
       if (!amountRaw || !Number.isFinite(amount) || amount <= 0) return errEl.textContent = "Укажи корректную сумму.";
 
-      // --- 3. ФОРМИРУЕМ ОБЪЕКТ ДЛЯ ОТПРАВКИ ---
       const payload = {
         type: "payment_form",
         plot: Number(plot),
@@ -100,34 +192,28 @@
         bank: bankEl.value?.trim() || "",
         comment: commentEl.value?.trim() || "",
         client_ts: new Date().toISOString(),
-        user: tg.initDataUnsafe?.user // Данные о пользователе Telegram
+        user: tg.initDataUnsafe?.user
       };
       
-      // Блокируем кнопку, чтобы не нажали дважды
       sendBtn.disabled = true;
       sendBtn.textContent = "Отправка...";
 
-      // --- 4. ОТПРАВЛЯЕМ В N8N (WEBHOOK) ---
+      // НЕ ЗАБУДЬТЕ ВСТАВИТЬ СЮДА ВАШ URL ИЗ n8n
       fetch('https://www.maximdkh.ru/webhook-test/sneg-form', {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
       })
       .then(response => {
         if (response.ok) {
-          // Если n8n ответил 200 OK
-          tg.close(); 
+           tg.close(); 
         } else {
-          // Если ошибка сервера
-          errEl.textContent = "Ошибка сервера: " + response.status;
-          sendBtn.disabled = false;
-          sendBtn.textContent = "Отправить";
+           errEl.textContent = "Ошибка сервера: " + response.status;
+           sendBtn.disabled = false;
+           sendBtn.textContent = "Отправить";
         }
       })
       .catch(error => {
-        // Если нет интернета или адрес недоступен
         errEl.textContent = "Ошибка сети: " + error.message;
         sendBtn.disabled = false;
         sendBtn.textContent = "Отправить";
