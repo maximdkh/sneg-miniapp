@@ -100,9 +100,10 @@
         client_ts: new Date().toISOString()
       };
 
-      tg.sendData(JSON.stringify(payload));
-      tg.close();
-    };
+     tg.sendData(JSON.stringify(payload));
+tg.showAlert("Отправлено ✅", () => {
+  setTimeout(() => tg.close(), 200);
+});
   </script>
 </body>
 </html>
