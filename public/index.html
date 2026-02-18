@@ -38,7 +38,6 @@
         <label>Сбор *</label>
         <select id="collection">
           <option value="">Выбери…</option>
-          <option value="1">Сбор 1</option>
           <option value="2">Сбор 2</option>
           <option value="3">Сбор 3</option>
         </select>
@@ -48,11 +47,11 @@
     <label>Сумма (₽) *</label>
     <input id="amount" inputmode="decimal" placeholder="Например: 1000" />
 
-    <label>Банк (необязательно)</label>
+    <label>Банк </label>
     <input id="bank" placeholder="Сбер / Тинькофф / Наличные…" />
 
     <label>Комментарий (необязательно)</label>
-    <textarea id="comment" placeholder="Например: частями / за двоих / уточнение"></textarea>
+    <textarea id="comment" placeholder="Например: за двоих / уточнение"></textarea>
 
     <div class="hint">После отправки бот попросит прислать чек (фото/пдф) в этот же чат.</div>
     <div id="err" class="error"></div>
@@ -61,7 +60,7 @@
   </div>
 
   <script>
-    const tg = window.Telegram.WebApp;
+       const tg = window.Telegram.WebApp;
     tg.ready();
 
     document.body.style.background = tg.themeParams.bg_color || "#fff";
@@ -81,15 +80,18 @@
     sendBtn.onclick = () => {
       errEl.textContent = "";
 
+      // --- 1. СНАЧАЛА ПОЛУЧАЕМ ДАННЫЕ (Этого не хватало) ---
       const plot = onlyDigits(plotEl.value);
       const collection = collectionEl.value;
       const amountRaw = normAmount(amountEl.value);
       const amount = Number(amountRaw);
 
+      // --- 2. ПРОВЕРЯЕМ ОШИБКИ (ВАЛИДАЦИЯ) ---
       if (!plot) return errEl.textContent = "Укажи номер участка.";
       if (!collection) return errEl.textContent = "Выбери номер сбора.";
       if (!amountRaw || !Number.isFinite(amount) || amount <= 0) return errEl.textContent = "Укажи корректную сумму.";
 
+      // --- 3. ФОРМИРУЕМ ОБЪЕКТ ДЛЯ ОТПРАВКИ ---
       const payload = {
         type: "payment_form",
         plot: Number(plot),
@@ -97,13 +99,40 @@
         amount: Math.round(amount * 100) / 100,
         bank: bankEl.value?.trim() || "",
         comment: commentEl.value?.trim() || "",
-        client_ts: new Date().toISOString()
+        client_ts: new Date().toISOString(),
+        user: tg.initDataUnsafe?.user // Данные о пользователе Telegram
       };
+      
+      // Блокируем кнопку, чтобы не нажали дважды
+      sendBtn.disabled = true;
+      sendBtn.textContent = "Отправка...";
 
-     tg.sendData(JSON.stringify(payload));
-tg.showAlert("Отправлено ✅", () => {
-  setTimeout(() => tg.close(), 200);
-});
+      // --- 4. ОТПРАВЛЯЕМ В N8N (WEBHOOK) ---
+      fetch('https://www.maximdkh.ru/webhook-test/sneg-form', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      })
+      .then(response => {
+        if (response.ok) {
+          // Если n8n ответил 200 OK
+          tg.close(); 
+        } else {
+          // Если ошибка сервера
+          errEl.textContent = "Ошибка сервера: " + response.status;
+          sendBtn.disabled = false;
+          sendBtn.textContent = "Отправить";
+        }
+      })
+      .catch(error => {
+        // Если нет интернета или адрес недоступен
+        errEl.textContent = "Ошибка сети: " + error.message;
+        sendBtn.disabled = false;
+        sendBtn.textContent = "Отправить";
+      });
+    };
   </script>
 </body>
 </html>
