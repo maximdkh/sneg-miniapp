@@ -20,23 +20,46 @@
     .error { color: #b00020; margin-top: 10px; font-size: 14px; }
     .hint { color:#666; font-size: 13px; margin-top: 8px; }
     
+    /* НОВЫЙ СТИЛЬ ДЛЯ ВАЖНОЙ ПОДСКАЗКИ */
+    .hint-important {
+      color: #d32f2f;       /* Красный */
+      font-size: 17px;      /* Крупный */
+      font-weight: bold;    /* Жирный */
+      text-align: center;
+      margin: 20px 0 10px 0;
+      line-height: 1.4;
+    }
+
     /* Стили кнопок */
     button {
       width: 100%; margin-top: 14px; padding: 12px; font-size: 16px;
       border-radius: 12px; border: none; cursor: pointer;
       font-weight: 500;
     }
+    
+    /* Стандартная синяя кнопка */
     .btn-primary {
       background-color: var(--tg-theme-button-color, #2481cc);
       color: var(--tg-theme-button-text-color, #ffffff);
     }
+    
+    /* НОВАЯ КРАСНАЯ КНОПКА */
+    .btn-red {
+      background-color: #d32f2f; /* Красный фон */
+      color: #ffffff;            /* Белый текст */
+      font-weight: bold;
+      font-size: 18px;           /* Чуть крупнее */
+    }
+
+    /* Кнопка ссылки (прозрачная) */
     .btn-outline {
       background-color: transparent;
       border: 2px solid var(--tg-theme-button-color, #2481cc);
       color: var(--tg-theme-text-color, #000);
       margin-top: 10px;
     }
-    /* Стиль для кнопки вопроса (оранжевый/красный оттенок) */
+    
+    /* Стиль для кнопки вопроса (оранжевый) */
     .btn-question {
       background-color: transparent;
       border: 2px solid #e67e22; 
@@ -63,14 +86,19 @@
         💳 Т-Банк
       </button>
 
-      <br><br>
-      <div class="hint">После оплаты нажмите кнопку ниже, чтобы заполнить данные о платеже.</div>
+      <br>
       
-      <button class="btn-primary" id="goToFormBtn">
+      <!-- ИЗМЕНЕННЫЙ ТЕКСТ ПОДСКАЗКИ -->
+      <div class="hint-important">
+        После оплаты нажмите кнопку ниже,<br>чтобы заполнить данные о платеже. 👇
+      </div>
+      
+      <!-- ИЗМЕНЕННАЯ КРАСНАЯ КНОПКА -->
+      <button class="btn-red" id="goToFormBtn">
         Я оплатил, заполнить форму 👉
       </button>
 
-      <!-- НОВАЯ КНОПКА ВОПРОСА -->
+      <!-- КНОПКА ВОПРОСА -->
       <button class="btn-question" id="askBtn">
         ❓ У меня вопрос / проблема
       </button>
@@ -130,19 +158,22 @@
     document.body.style.background = tg.themeParams.bg_color || "#fff";
     document.body.style.color = tg.themeParams.text_color || "#000";
 
+    // Красим обычные кнопки в цвет темы
     document.querySelectorAll('.btn-primary').forEach(b => {
         b.style.backgroundColor = mainButtonColor;
         b.style.color = mainButtonText;
     });
+    // Красим обводку кнопок банков
     document.querySelectorAll('.btn-outline').forEach(b => {
         b.style.borderColor = mainButtonColor;
         b.style.color = tg.themeParams.text_color || "#000";
     });
+    // Красная кнопка остается красной (ее не трогаем скриптом)
 
     const step1 = document.getElementById('step1');
     const step2 = document.getElementById('step2');
 
-    // URL ВАШЕГО WEBHOOK (Один на всё)
+    // URL ВАШЕГО WEBHOOK
     const WEBHOOK_URL = 'https://www.maximdkh.ru/webhook/sneg-form'; 
 
     window.openPayment = (url) => { tg.openLink(url); };
@@ -167,7 +198,7 @@
         btn.textContent = "Сообщаю администратору...";
 
         const payload = {
-            type: "question", // <--- ГЛАВНОЕ ОТЛИЧИЕ
+            type: "question",
             user: tg.initDataUnsafe?.user
         };
 
@@ -210,7 +241,7 @@
       if (!amountRaw || !Number.isFinite(amount) || amount <= 0) return errEl.textContent = "Укажи корректную сумму.";
 
       const payload = {
-        type: "payment_form", // <--- ОБЫЧНЫЙ ТИП
+        type: "payment_form",
         plot: Number(plot),
         collection: Number(collection),
         amount: Math.round(amount * 100) / 100,
