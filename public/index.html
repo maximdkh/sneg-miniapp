@@ -26,20 +26,24 @@
       border-radius: 12px; border: none; cursor: pointer;
       font-weight: 500;
     }
-    /* Кнопка действия (синяя/зеленая) */
     .btn-primary {
       background-color: var(--tg-theme-button-color, #2481cc);
       color: var(--tg-theme-button-text-color, #ffffff);
     }
-    /* Кнопка ссылки (прозрачная с рамкой) */
     .btn-outline {
       background-color: transparent;
       border: 2px solid var(--tg-theme-button-color, #2481cc);
       color: var(--tg-theme-text-color, #000);
       margin-top: 10px;
     }
-    
-    /* Скрываем блоки */
+    /* Стиль для кнопки вопроса (оранжевый/красный оттенок) */
+    .btn-question {
+      background-color: transparent;
+      border: 2px solid #e67e22; 
+      color: #e67e22;
+      margin-top: 25px;
+    }
+
     .hidden { display: none; }
   </style>
 </head>
@@ -51,7 +55,6 @@
     <div class="card">
       <p>Сначала выберите вариант оплаты:</p>
       
-      <!-- Ссылки на банк -->
       <button class="btn-outline" onclick="openPayment('https://messenger.online.sberbank.ru/sl/fphFphF74XMKE2qb9')">
         💳 Сбербанк
       </button>
@@ -66,10 +69,15 @@
       <button class="btn-primary" id="goToFormBtn">
         Я оплатил, заполнить форму 👉
       </button>
+
+      <!-- НОВАЯ КНОПКА ВОПРОСА -->
+      <button class="btn-question" id="askBtn">
+        ❓ У меня вопрос / проблема
+      </button>
     </div>
   </div>
 
-  <!-- ШАГ 2: ВАША ФОРМА (Изначально скрыта) -->
+  <!-- ШАГ 2: ВАША ФОРМА -->
   <div id="step2" class="hidden">
     <h2>Шаг 2: Данные</h2>
 
@@ -99,13 +107,12 @@
       <textarea id="comment" placeholder="Например: и 329, 330 / перечисли номера / уточнение"></textarea>
 
       <div class="hint" style="color: #d32f2f; font-size: 16px; font-weight: bold; text-align: center; margin: 15px 0;">
-  ⚠️ После отправки бот попросит прислать чек (фото/пдф) в этот же чат.
-</div>
+        ⚠️ После отправки бот попросит прислать чек (фото/пдф) в этот же чат.
+      </div>
       <div id="err" class="error"></div>
 
       <button id="sendBtn" class="btn-primary">Отправить заявку</button>
       
-      <!-- Кнопка назад, если случайно нажали -->
       <button onclick="goBack()" style="background:none; color:#888; font-size:14px; margin-top:5px;">
         ← Вернуться к оплате
       </button>
@@ -115,16 +122,14 @@
   <script>
     const tg = window.Telegram.WebApp;
     tg.ready();
-    tg.expand(); // Разворачиваем на весь экран для удобства
+    tg.expand();
 
-    // Применяем цвета темы Telegram
     const mainButtonColor = tg.themeParams.button_color || "#2481cc";
     const mainButtonText = tg.themeParams.button_text_color || "#ffffff";
     
     document.body.style.background = tg.themeParams.bg_color || "#fff";
     document.body.style.color = tg.themeParams.text_color || "#000";
 
-    // Настраиваем стили кнопок динамически под тему
     document.querySelectorAll('.btn-primary').forEach(b => {
         b.style.backgroundColor = mainButtonColor;
         b.style.color = mainButtonText;
@@ -134,35 +139,53 @@
         b.style.color = tg.themeParams.text_color || "#000";
     });
 
-    // Элементы навигации
     const step1 = document.getElementById('step1');
     const step2 = document.getElementById('step2');
 
-    // ФУНКЦИИ ПЕРЕХОДОВ
-    
-    // 1. Открыть ссылку банка
-    window.openPayment = (url) => {
-        tg.openLink(url); 
-    };
+    // URL ВАШЕГО WEBHOOK (Один на всё)
+    const WEBHOOK_URL = 'https://www.maximdkh.ru/webhook/sneg-form'; 
 
-    // 2. Перейти к форме
+    window.openPayment = (url) => { tg.openLink(url); };
+
     document.getElementById('goToFormBtn').onclick = () => {
         step1.classList.add('hidden');
         step2.classList.remove('hidden');
-        // Кнопка назад в шапке (опционально)
         tg.BackButton.show();
         tg.BackButton.onClick(goBack);
     };
 
-    // 3. Вернуться назад
     window.goBack = () => {
         step2.classList.add('hidden');
         step1.classList.remove('hidden');
         tg.BackButton.hide();
     };
 
+    // --- ЛОГИКА КНОПКИ "ЗАДАТЬ ВОПРОС" ---
+    document.getElementById('askBtn').onclick = () => {
+        const btn = document.getElementById('askBtn');
+        btn.disabled = true;
+        btn.textContent = "Сообщаю администратору...";
 
-    // --- ЛОГИКА ВАШЕЙ ФОРМЫ (без изменений) ---
+        const payload = {
+            type: "question", // <--- ГЛАВНОЕ ОТЛИЧИЕ
+            user: tg.initDataUnsafe?.user
+        };
+
+        fetch(WEBHOOK_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        })
+        .then(() => {
+            tg.close();
+        })
+        .catch(() => {
+            alert("Ошибка сети. Напишите просто в чат.");
+            tg.close();
+        });
+    };
+
+    // --- ЛОГИКА ФОРМЫ ОПЛАТЫ ---
     const plotEl = document.getElementById("plot");
     const amountEl = document.getElementById("amount");
     const collectionEl = document.getElementById("collection");
@@ -187,7 +210,7 @@
       if (!amountRaw || !Number.isFinite(amount) || amount <= 0) return errEl.textContent = "Укажи корректную сумму.";
 
       const payload = {
-        type: "payment_form",
+        type: "payment_form", // <--- ОБЫЧНЫЙ ТИП
         plot: Number(plot),
         collection: Number(collection),
         amount: Math.round(amount * 100) / 100,
@@ -200,8 +223,7 @@
       sendBtn.disabled = true;
       sendBtn.textContent = "Отправка...";
 
-      // НЕ ЗАБУДЬТЕ ВСТАВИТЬ СЮДА ВАШ URL ИЗ n8n
-      fetch('https://www.maximdkh.ru/webhook/sneg-form', {
+      fetch(WEBHOOK_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload)
