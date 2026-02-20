@@ -12,15 +12,15 @@
       margin: 0; 
       padding: 16px; 
       box-sizing: border-box; 
-      /* Важно: большой отступ снизу, чтобы футер не закрывал кнопку */
-      padding-bottom: 50px; 
+      /* Убрали лишний отступ снизу, так как футер теперь часть потока */
+      padding-bottom: 20px; 
     }
     
     h2 { margin: 8px 0 16px; }
     
     /* Карточка */
     .card { 
-      border: 1px solid rgba(0,0,0,0.05); /* Очень легкая рамка */
+      border: 1px solid rgba(0,0,0,0.05); 
       border-radius: 14px; 
       padding: 14px; 
       margin-bottom: 12px; 
@@ -34,13 +34,13 @@
       color: var(--tg-theme-text-color, #000);
     }
 
-    /* Стили заголовков полей (Сделали более прозрачными) */
+    /* Заголовки полей */
     label { 
       display:block; 
       margin: 12px 0 6px; 
       font-size: 14px; 
-      color: var(--tg-theme-hint-color, #999); /* Цвет подсказки Telegram */
-      opacity: 0.8; /* Дополнительная прозрачность */
+      color: var(--tg-theme-hint-color, #999); 
+      opacity: 0.7; 
     }
 
     /* Поля ввода */
@@ -49,16 +49,16 @@
       box-sizing: border-box; 
       padding: 12px; 
       border-radius: 10px;
-      border: 1px solid rgba(0,0,0,0.1); /* Легкая граница */
+      border: 1px solid rgba(0,0,0,0.1); 
       font-size: 16px;
-      background-color: var(--tg-theme-bg-color, #fff); /* Фон поля как фон страницы */
+      background-color: var(--tg-theme-bg-color, #fff); 
       color: var(--tg-theme-text-color, #000);
     }
     
-    /* Настройка Placeholder (текст-подсказка внутри поля) */
+    /* === ИЗМЕНЕНИЕ 1: Сделали подсказки внутри полей еле заметными === */
     input::placeholder, textarea::placeholder {
       color: var(--tg-theme-hint-color, #a8a8a8);
-      opacity: 0.6; /* Сделали более прозрачным и ненавязчивым */
+      opacity: 0.3; /* Было 0.6, стало 0.3 (очень светло) */
     }
 
     textarea { min-height: 72px; }
@@ -116,21 +116,16 @@
       padding: 10px;
     }
 
-    /* Стиль копирайта (ФИКСИРОВАННЫЙ ВНИЗУ) */
+    /* === ИЗМЕНЕНИЕ 2: Копирайт теперь просто внизу страницы (не прилипает) === */
     .copyright {
-      position: fixed; /* Всегда внизу экрана */
-      bottom: 15px;
-      right: 15px;
+      display: block;
+      text-align: center;
+      margin-top: 30px; /* Отступ от контента */
+      margin-bottom: 10px;
       font-size: 13px;
       color: var(--tg-theme-hint-color, #999);
       text-decoration: none;
-      font-weight: 500;
-      opacity: 0.7;
-      z-index: 1000;
-      padding: 5px 10px;
-      background: rgba(255,255,255,0.5); /* Легкий фон чтобы читалось */
-      border-radius: 10px;
-      backdrop-filter: blur(2px);
+      opacity: 0.5;
     }
     .copyright:hover {
       opacity: 1;
@@ -141,10 +136,6 @@
   </style>
 </head>
 <body>
-
-  <!-- КОПИРАЙТ В УГЛУ (Всегда виден) -->
-  <a href="https://t.me/AI_MAX_AI" class="copyright">Создано @AI_MAX_AI</a>
-
 
   <!-- ШАГ 1: ВЫБОР ОПЛАТЫ -->
   <div id="step1">
@@ -224,37 +215,34 @@
     </div>
   </div>
 
+  <!-- КОПИРАЙТ ТЕПЕРЬ ВНИЗУ ПОТОКА (НЕ ЗАКРЕПЛЕН) -->
+  <a href="https://t.me/AI_MAX_AI" class="copyright">Создано @AI_MAX_AI</a>
+
   <script>
     const tg = window.Telegram.WebApp;
     tg.ready();
     tg.expand();
 
-    // === НАСТРОЙКА ЦВЕТОВ (ВАЖНО) ===
+    // === НАСТРОЙКА ЦВЕТОВ ===
     const mainButtonColor = tg.themeParams.button_color || "#2481cc";
     const mainButtonText = tg.themeParams.button_text_color || "#ffffff";
     const textColor = tg.themeParams.text_color || "#000";
     const bgColor = tg.themeParams.bg_color || "#ffffff";
     
-    // Определяем тему: светлая или темная
     const isDark = tg.colorScheme === 'dark';
 
-    // 1. Настройка фона Body
     document.body.style.background = bgColor;
     document.body.style.color = textColor;
 
-    // 2. Настройка цвета КАРТОЧЕК (Блоков)
+    // Цвет карточек: в светлой теме чуть темнее белого (#f4f4f5)
     document.querySelectorAll('.card').forEach(c => {
         if (isDark) {
-            // В темной теме используем стандартный вторичный цвет
             c.style.backgroundColor = tg.themeParams.secondary_bg_color || "#1c1c1d";
         } else {
-            // В СВЕТЛОЙ теме делаем карточки ЧУТЬ ТЕМНЕЕ (серыми), как вы просили
-            // #f4f4f5 - это приятный светло-серый оттенок
             c.style.backgroundColor = "#f4f4f5"; 
         }
     });
 
-    // 3. Настройка кнопок
     document.querySelectorAll('.btn-primary').forEach(b => {
         b.style.backgroundColor = mainButtonColor;
         b.style.color = mainButtonText;
