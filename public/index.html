@@ -6,9 +6,25 @@
   <title>Сдача денег</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
-    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; margin: 0; padding: 16px; }
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; margin: 0; padding: 16px; box-sizing: border-box;}
     h2 { margin: 8px 0 16px; }
-    .card { border: 1px solid #ddd; border-radius: 14px; padding: 14px; }
+    
+    /* Карточка - белый блок */
+    .card { 
+      border: 1px solid #ddd; 
+      border-radius: 14px; 
+      padding: 14px; 
+      margin-bottom: 12px; 
+    }
+
+    /* Обычный текст инструкции */
+    .instruction-text {
+      margin: 0 0 10px 0;
+      font-size: 16px;
+      line-height: 1.4;
+      color: var(--tg-theme-text-color, #000);
+    }
+
     label { display:block; margin: 10px 0 6px; font-size: 14px; }
     input, select, textarea {
       width: 100%; box-sizing: border-box; padding: 10px 12px; border-radius: 10px;
@@ -18,21 +34,19 @@
     .row { display:flex; gap:10px; }
     .row > div { flex:1; }
     .error { color: #b00020; margin-top: 10px; font-size: 14px; }
-    .hint { color:#666; font-size: 13px; margin-top: 8px; }
     
-    /* НОВЫЙ СТИЛЬ ДЛЯ ВАЖНОЙ ПОДСКАЗКИ */
-    .hint-important {
-      color: #d32f2f;       /* Красный */
-      font-size: 17px;      /* Крупный */
-      font-weight: bold;    /* Жирный */
-      text-align: center;
-      margin: 20px 0 10px 0;
-      line-height: 1.4;
+    /* Важная подсказка (красная) внутри формы */
+    .hint-warning { 
+      color: #d32f2f; 
+      font-size: 15px; 
+      font-weight: bold; 
+      text-align: center; 
+      margin: 15px 0; 
     }
 
     /* Стили кнопок */
     button {
-      width: 100%; margin-top: 14px; padding: 12px; font-size: 16px;
+      width: 100%; padding: 12px; font-size: 16px;
       border-radius: 12px; border: none; cursor: pointer;
       font-weight: 500;
     }
@@ -41,14 +55,16 @@
     .btn-primary {
       background-color: var(--tg-theme-button-color, #2481cc);
       color: var(--tg-theme-button-text-color, #ffffff);
+      margin-top: 14px;
     }
     
-    /* НОВАЯ КРАСНАЯ КНОПКА */
+    /* Красная кнопка подтверждения */
     .btn-red {
-      background-color: #d32f2f; /* Красный фон */
-      color: #ffffff;            /* Белый текст */
+      background-color: #d32f2f; 
+      color: #ffffff;            
       font-weight: bold;
-      font-size: 18px;           /* Чуть крупнее */
+      font-size: 17px;
+      margin-top: 10px;
     }
 
     /* Кнопка ссылки (прозрачная) */
@@ -56,15 +72,20 @@
       background-color: transparent;
       border: 2px solid var(--tg-theme-button-color, #2481cc);
       color: var(--tg-theme-text-color, #000);
-      margin-top: 10px;
+      margin-bottom: 10px; 
     }
     
-    /* Стиль для кнопки вопроса (оранжевый) */
+    /* Кнопка вопроса (Футер) */
+    .footer-section {
+      margin-top: 20px;
+      text-align: center;
+    }
     .btn-question {
       background-color: transparent;
-      border: 2px solid #e67e22; 
+      border: 1px solid #e67e22; /* Тонкая рамка */
       color: #e67e22;
-      margin-top: 25px;
+      font-size: 15px;
+      padding: 10px;
     }
 
     .hidden { display: none; }
@@ -75,8 +96,10 @@
   <!-- ШАГ 1: ВЫБОР ОПЛАТЫ -->
   <div id="step1">
     <h2>Шаг 1: Оплата</h2>
+    
+    <!-- БЛОК 1: Банки -->
     <div class="card">
-      <p>Сначала выберите вариант оплаты:</p>
+      <p class="instruction-text">Сначала выберите вариант оплаты:</p>
       
       <button class="btn-outline" onclick="openPayment('https://messenger.online.sberbank.ru/sl/fphFphF74XMKE2qb9')">
         💳 Сбербанк
@@ -85,20 +108,21 @@
       <button class="btn-outline" onclick="openPayment('https://www.tbank.ru/cf/3J5xZhnK6cY')">
         💳 Т-Банк
       </button>
+    </div>
 
-      <br>
+    <!-- БЛОК 2: Подтверждение -->
+    <div class="card">
+      <p class="instruction-text">
+        После оплаты нажмите кнопку ниже, чтобы заполнить данные о платеже. 👇
+      </p>
       
-      <!-- ИЗМЕНЕННЫЙ ТЕКСТ ПОДСКАЗКИ -->
-      <div class="hint-important">
-        После оплаты нажмите кнопку ниже,<br>чтобы заполнить данные о платеже. 👇
-      </div>
-      
-      <!-- ИЗМЕНЕННАЯ КРАСНАЯ КНОПКА -->
       <button class="btn-red" id="goToFormBtn">
         Я оплатил, заполнить форму 👉
       </button>
+    </div>
 
-      <!-- КНОПКА ВОПРОСА -->
+    <!-- ФУТЕР: Вопрос -->
+    <div class="footer-section">
       <button class="btn-question" id="askBtn">
         ❓ У меня вопрос / проблема
       </button>
@@ -107,12 +131,13 @@
 
   <!-- ШАГ 2: ВАША ФОРМА -->
   <div id="step2" class="hidden">
-    <h2>Шаг 2: Данные</h2>
+    <h2>Шаг 2: Анкета</h2>
 
     <div class="card">
       <div class="row">
         <div>
           <label>Участок *</label>
+          <!-- Обновили placeholder для ясности -->
           <input id="plot" inputmode="numeric" placeholder="Например: 328" />
         </div>
         <div>
@@ -128,15 +153,17 @@
       <label>Сумма (₽) *</label>
       <input id="amount" inputmode="decimal" placeholder="Например: 1000" />
 
-      <label>Банк (необязательно)</label>
+      <!-- Сделали поле обязательным в HTML (визуально) -->
+      <label>Банк *</label>
       <input id="bank" placeholder="Сбер / Тинькофф / SBP…" />
 
       <label>Комментарий (необязательно)</label>
       <textarea id="comment" placeholder="Например: и 329, 330 / перечисли номера / уточнение"></textarea>
 
-      <div class="hint" style="color: #d32f2f; font-size: 16px; font-weight: bold; text-align: center; margin: 15px 0;">
+      <div class="hint-warning">
         ⚠️ После отправки бот попросит прислать чек (фото/пдф) в этот же чат.
       </div>
+      
       <div id="err" class="error"></div>
 
       <button id="sendBtn" class="btn-primary">Отправить заявку</button>
@@ -154,26 +181,28 @@
 
     const mainButtonColor = tg.themeParams.button_color || "#2481cc";
     const mainButtonText = tg.themeParams.button_text_color || "#ffffff";
+    const textColor = tg.themeParams.text_color || "#000";
     
-    document.body.style.background = tg.themeParams.bg_color || "#fff";
-    document.body.style.color = tg.themeParams.text_color || "#000";
+    document.body.style.background = tg.themeParams.bg_color || "#f2f2f2"; 
+    document.body.style.color = textColor;
 
-    // Красим обычные кнопки в цвет темы
     document.querySelectorAll('.btn-primary').forEach(b => {
         b.style.backgroundColor = mainButtonColor;
         b.style.color = mainButtonText;
     });
-    // Красим обводку кнопок банков
     document.querySelectorAll('.btn-outline').forEach(b => {
         b.style.borderColor = mainButtonColor;
-        b.style.color = tg.themeParams.text_color || "#000";
+        b.style.color = textColor;
     });
-    // Красная кнопка остается красной (ее не трогаем скриптом)
+    
+    document.querySelectorAll('.card').forEach(c => {
+        c.style.backgroundColor = tg.themeParams.secondary_bg_color || "#ffffff";
+        c.style.borderColor = "transparent"; 
+    });
 
     const step1 = document.getElementById('step1');
     const step2 = document.getElementById('step2');
 
-    // URL ВАШЕГО WEBHOOK
     const WEBHOOK_URL = 'https://www.maximdkh.ru/webhook/sneg-form'; 
 
     window.openPayment = (url) => { tg.openLink(url); };
@@ -191,7 +220,6 @@
         tg.BackButton.hide();
     };
 
-    // --- ЛОГИКА КНОПКИ "ЗАДАТЬ ВОПРОС" ---
     document.getElementById('askBtn').onclick = () => {
         const btn = document.getElementById('askBtn');
         btn.disabled = true;
@@ -216,7 +244,7 @@
         });
     };
 
-    // --- ЛОГИКА ФОРМЫ ОПЛАТЫ ---
+    // --- ЛОГИКА ФОРМЫ ---
     const plotEl = document.getElementById("plot");
     const amountEl = document.getElementById("amount");
     const collectionEl = document.getElementById("collection");
@@ -231,21 +259,47 @@
     sendBtn.onclick = () => {
       errEl.textContent = "";
 
-      const plot = onlyDigits(plotEl.value);
+      // 1. ПОЛУЧАЕМ СЫРЫЕ ДАННЫЕ ДЛЯ ПРОВЕРКИ
+      const plotRaw = plotEl.value.trim();
+      const bankRaw = bankEl.value.trim();
       const collection = collectionEl.value;
       const amountRaw = normAmount(amountEl.value);
       const amount = Number(amountRaw);
 
-      if (!plot) return errEl.textContent = "Укажи номер участка.";
+      // 2. ПРОВЕРКА УЧАСТКА (СТРОГАЯ)
+      // Запрещаем запятые, точки и пробелы, чтобы не писали "12,13"
+      if (plotRaw.includes(',') || plotRaw.includes('.') || plotRaw.includes(' ')) {
+         return errEl.textContent = "Укажи только один номер участка (без запятых).";
+      }
+      
+      const plot = onlyDigits(plotRaw);
+      
+      if (!plot) {
+          return errEl.textContent = "Укажи номер участка.";
+      }
+      // Проверка на длину (макс 3 знака)
+      if (plot.length > 3) {
+          return errEl.textContent = "Номер участка не может быть длиннее 3 цифр.";
+      }
+
+      // 3. ОСТАЛЬНЫЕ ПРОВЕРКИ
       if (!collection) return errEl.textContent = "Выбери номер сбора.";
-      if (!amountRaw || !Number.isFinite(amount) || amount <= 0) return errEl.textContent = "Укажи корректную сумму.";
+      
+      if (!amountRaw || !Number.isFinite(amount) || amount <= 0) {
+          return errEl.textContent = "Укажи корректную сумму.";
+      }
+
+      // Проверка Банка (теперь обязательное поле)
+      if (!bankRaw) {
+          return errEl.textContent = "Укажи банк оплаты.";
+      }
 
       const payload = {
         type: "payment_form",
         plot: Number(plot),
         collection: Number(collection),
         amount: Math.round(amount * 100) / 100,
-        bank: bankEl.value?.trim() || "",
+        bank: bankRaw, // Используем проверенное значение
         comment: commentEl.value?.trim() || "",
         client_ts: new Date().toISOString(),
         user: tg.initDataUnsafe?.user
