@@ -6,7 +6,7 @@
   <title>Сдача денег</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
-    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; margin: 0; padding: 16px; box-sizing: border-box;}
+    body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; margin: 0; padding: 16px; box-sizing: border-box; padding-bottom: 40px; /* Отступ под футер */ }
     h2 { margin: 8px 0 16px; }
     
     /* Карточка - белый блок */
@@ -88,10 +88,30 @@
       padding: 10px;
     }
 
+    /* Стиль копирайта (правый нижний угол) */
+    .copyright {
+      position: fixed;
+      bottom: 10px;
+      right: 15px;
+      font-size: 12px;
+      color: rgba(128, 128, 128, 0.5); /* Серый полупрозрачный */
+      text-decoration: none;
+      font-weight: 500;
+      z-index: 999;
+      pointer-events: auto;
+    }
+    .copyright:hover {
+      color: rgba(128, 128, 128, 0.8);
+    }
+
     .hidden { display: none; }
   </style>
 </head>
 <body>
+
+  <!-- КОПИРАЙТ В УГЛУ -->
+  <a href="https://t.me/AI_MAX_AI" class="copyright">Создано @AI_MAX_AI</a>
+
 
   <!-- ШАГ 1: ВЫБОР ОПЛАТЫ -->
   <div id="step1">
@@ -109,6 +129,9 @@
         💳 Т-Банк
       </button>
     </div>
+
+    <!-- ЗАГОЛОВОК НАД ВТОРЫМ БЛОКОМ -->
+    <h2>Шаг 2: Форма</h2>
 
     <!-- БЛОК 2: Подтверждение -->
     <div class="card">
@@ -129,7 +152,7 @@
     </div>
   </div>
 
-  <!-- ШАГ 2: ВАША ФОРМА -->
+  <!-- ШАГ 2 (ЭКРАН 2): ВАША ФОРМА -->
   <div id="step2" class="hidden">
     <h2>Шаг 2: Анкета</h2>
 
@@ -137,7 +160,6 @@
       <div class="row">
         <div>
           <label>Участок *</label>
-          <!-- Обновили placeholder для ясности -->
           <input id="plot" inputmode="numeric" placeholder="Например: 328" />
         </div>
         <div>
@@ -153,7 +175,6 @@
       <label>Сумма (₽) *</label>
       <input id="amount" inputmode="decimal" placeholder="Например: 1000" />
 
-      <!-- Сделали поле обязательным в HTML (визуально) -->
       <label>Банк *</label>
       <input id="bank" placeholder="Сбер / Тинькофф / SBP…" />
 
@@ -259,15 +280,12 @@
     sendBtn.onclick = () => {
       errEl.textContent = "";
 
-      // 1. ПОЛУЧАЕМ СЫРЫЕ ДАННЫЕ ДЛЯ ПРОВЕРКИ
       const plotRaw = plotEl.value.trim();
       const bankRaw = bankEl.value.trim();
       const collection = collectionEl.value;
       const amountRaw = normAmount(amountEl.value);
       const amount = Number(amountRaw);
 
-      // 2. ПРОВЕРКА УЧАСТКА (СТРОГАЯ)
-      // Запрещаем запятые, точки и пробелы, чтобы не писали "12,13"
       if (plotRaw.includes(',') || plotRaw.includes('.') || plotRaw.includes(' ')) {
          return errEl.textContent = "Укажи только один номер участка (без запятых).";
       }
@@ -277,19 +295,16 @@
       if (!plot) {
           return errEl.textContent = "Укажи номер участка.";
       }
-      // Проверка на длину (макс 3 знака)
       if (plot.length > 3) {
           return errEl.textContent = "Номер участка не может быть длиннее 3 цифр.";
       }
 
-      // 3. ОСТАЛЬНЫЕ ПРОВЕРКИ
       if (!collection) return errEl.textContent = "Выбери номер сбора.";
       
       if (!amountRaw || !Number.isFinite(amount) || amount <= 0) {
           return errEl.textContent = "Укажи корректную сумму.";
       }
 
-      // Проверка Банка (теперь обязательное поле)
       if (!bankRaw) {
           return errEl.textContent = "Укажи банк оплаты.";
       }
@@ -299,7 +314,7 @@
         plot: Number(plot),
         collection: Number(collection),
         amount: Math.round(amount * 100) / 100,
-        bank: bankRaw, // Используем проверенное значение
+        bank: bankRaw, 
         comment: commentEl.value?.trim() || "",
         client_ts: new Date().toISOString(),
         user: tg.initDataUnsafe?.user
