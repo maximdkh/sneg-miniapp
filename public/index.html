@@ -55,10 +55,10 @@
       color: var(--tg-theme-text-color, #000);
     }
     
-    /* === ИЗМЕНЕНИЕ 1: Сделали подсказки внутри полей еле заметными === */
+    /* Подсказки внутри полей еле заметные */
     input::placeholder, textarea::placeholder {
       color: var(--tg-theme-hint-color, #a8a8a8);
-      opacity: 0.2; /* Было 0.6, стало 0.2 (очень светло) */
+      opacity: 0.2; 
     }
 
     textarea { min-height: 72px; }
@@ -116,11 +116,11 @@
       padding: 10px;
     }
 
-    /* === ИЗМЕНЕНИЕ 2: Копирайт теперь просто внизу страницы (не прилипает) === */
+    /* Копирайт внизу потока */
     .copyright {
       display: block;
       text-align: center;
-      margin-top: 30px; /* Отступ от контента */
+      margin-top: 30px; 
       margin-bottom: 10px;
       font-size: 13px;
       color: var(--tg-theme-hint-color, #999);
@@ -184,10 +184,12 @@
         </div>
         <div>
           <label>Сбор *</label>
+          <!-- ДОБАВИЛ СБОР 4 -->
           <select id="collection">
             <option value="">Выбери…</option>
             <option value="2">Сбор 2</option>
             <option value="3">Сбор 3</option>
+            <option value="4">Сбор 4</option>
           </select>
         </div>
       </div>
@@ -215,7 +217,7 @@
     </div>
   </div>
 
-  <!-- КОПИРАЙТ ТЕПЕРЬ ВНИЗУ ПОТОКА (НЕ ЗАКРЕПЛЕН) -->
+  <!-- КОПИРАЙТ -->
   <a href="https://t.me/AI_MAX_AI" class="copyright">Создано @AI_MAX_AI</a>
 
   <script>
@@ -234,7 +236,7 @@
     document.body.style.background = bgColor;
     document.body.style.color = textColor;
 
-    // Цвет карточек: в светлой теме чуть темнее белого (#f4f4f5)
+    // Цвет карточек
     document.querySelectorAll('.card').forEach(c => {
         if (isDark) {
             c.style.backgroundColor = tg.themeParams.secondary_bg_color || "#1c1c1d";
