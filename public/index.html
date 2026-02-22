@@ -42,37 +42,35 @@
       opacity: 0.9; 
     }
 
-    /* === ИСПРАВЛЕНИЕ ПОЛЕЙ ВВОДА === */
+    /* === СТИЛИ ПОЛЕЙ ВВОДА И СПИСКОВ === */
     input, select, textarea {
       width: 100%; 
       box-sizing: border-box; 
       padding: 12px; 
       border-radius: 10px;
       
-      /* ИЗМЕНЕНИЕ: Делаем рамку серой, чтобы её было видно на черном фоне */
+      /* Рамка серая, чтобы видно на черном */
       border: 1px solid rgba(128, 128, 128, 0.4); 
       
       font-size: 16px;
-      /* Фон поля берем из темы (черный в темной, белый в светлой) */
       background-color: var(--tg-theme-bg-color, #fff); 
       color: var(--tg-theme-text-color, #000);
       
-      /* Плавный переход цвета рамки */
       transition: border-color 0.2s;
     }
 
-    /* Подсветка активного поля (когда на него нажали) */
+    /* Подсветка активного поля */
     input:focus, select:focus, textarea:focus {
       outline: none;
       border-color: var(--tg-theme-button-color, #2481cc);
       border-width: 2px;
-      padding: 11px; /* Компенсация толщины рамки */
+      padding: 11px;
     }
     
     /* Подсказки внутри полей */
     input::placeholder, textarea::placeholder {
       color: var(--tg-theme-hint-color, #a8a8a8);
-      opacity: 0.3; /* Чуть прибавил, чтобы было видно, но не ярко */
+      opacity: 0.3; 
     }
 
     textarea { min-height: 72px; }
@@ -211,7 +209,12 @@
       <input id="amount" inputmode="decimal" placeholder="Например: 1000" />
 
       <label>Банк *</label>
-      <input id="bank" placeholder="Сбер / Тинькофф / SBP…" />
+      <!-- ТЕПЕРЬ ЗДЕСЬ ВЫБОР ИЗ СПИСКА -->
+      <select id="bank">
+        <option value="">Выбери банк...</option>
+        <option value="Сбер">Сбер</option>
+        <option value="Т-Банк">Т-Банк</option>
+      </select>
 
       <label>Комментарий (необязательно)</label>
       <textarea id="comment" placeholder="Например: и 329, 330 / перечисли номера / уточнение"></textarea>
@@ -306,7 +309,7 @@
     const plotEl = document.getElementById("plot");
     const amountEl = document.getElementById("amount");
     const collectionEl = document.getElementById("collection");
-    const bankEl = document.getElementById("bank");
+    const bankEl = document.getElementById("bank"); // Теперь это <select>
     const commentEl = document.getElementById("comment");
     const errEl = document.getElementById("err");
     const sendBtn = document.getElementById("sendBtn");
@@ -318,7 +321,7 @@
       errEl.textContent = "";
 
       const plotRaw = plotEl.value.trim();
-      const bankRaw = bankEl.value.trim();
+      const bankRaw = bankEl.value; // Для select trim не обязателен, но не помешает
       const collection = collectionEl.value;
       const amountRaw = normAmount(amountEl.value);
       const amount = Number(amountRaw);
@@ -333,6 +336,8 @@
       if (plot.length > 3) return errEl.textContent = "Номер участка не может быть длиннее 3 цифр.";
       if (!collection) return errEl.textContent = "Выбери номер сбора.";
       if (!amountRaw || !Number.isFinite(amount) || amount <= 0) return errEl.textContent = "Укажи корректную сумму.";
+      
+      // Проверка банка работает так же (если value="" - вернет false)
       if (!bankRaw) return errEl.textContent = "Укажи банк оплаты.";
 
       const payload = {
